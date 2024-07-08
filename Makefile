@@ -6,9 +6,11 @@ TARGET_COMMON := $(BIN_DIR)/BOOTX64.elf
 .PHONY: all
 all: setup $(TARGET_COMMON)
 
-$(TARGET_COMMON): | $(BIN_DIR)
+$(TARGET_COMMON): $(COMMON_DIR)/branch.efi | $(BIN_DIR)
+	@cp $(COMMON_DIR)/branch.efi $(TARGET_COMMON)
+
+$(COMMON_DIR)/branch.efi: common
 	@$(MAKE) -C $(COMMON_DIR)
-	@mv $(COMMON_DIR)/branch.efi $(TARGET_COMMON)
 
 $(BIN_DIR):
 	@mkdir -p $(BIN_DIR)
@@ -21,7 +23,6 @@ common:
 	@$(MAKE) -C $(COMMON_DIR)
 
 .PHONY: test
-
 test: | $(TARGET_COMMON)
 	@curl --output ovmf.fd https://retrage.github.io/edk2-nightly/bin/RELEASEX64_OVMF.fd
 	@if [ "$(shell uname -s)" = "Darwin" ]; then \
@@ -40,7 +41,6 @@ test: | $(TARGET_COMMON)
 	    rm -rf mnt; \
 	fi
 	@qemu-system-x86_64 -m 2G -drive if=pflash,format=raw,readonly=on,file=ovmf.fd -drive if=ide,format=raw,file=boot.img -debugcon stdio
-
 
 .PHONY: clean
 clean:
