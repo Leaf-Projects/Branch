@@ -1,0 +1,9 @@
+*.o
+*.efi
+*.img
+*.fd
+
+/bin/
+/common/efi/
+/.vscode/
+/mnt/
