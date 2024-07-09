@@ -13,6 +13,11 @@ void putc(char character)
     str[0] = (CHAR16)character;
     str[1] = '\0';
 
+    if (character == '\n')
+    {
+        stdout->OutputString(stdout, L"\r");
+    }
+
     stdout->OutputString(stdout, str);
 }
 

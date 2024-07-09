@@ -27,7 +27,7 @@ void _display_banner()
     stdout->SetAttribute(stdout, EFI_MAGENTA | EFI_BACKGROUND_BLACK);
     for (size_t i = 0; i < sizeof(_banner) / sizeof(*_banner); i++)
     {
-        printf("%s\r\n", _banner[i]);
+        printf("%s\n", _banner[i]);
     }
     stdout->SetAttribute(stdout, EFI_LIGHTGRAY | EFI_BACKGROUND_BLACK);
 }
@@ -53,12 +53,12 @@ void draw_menu()
         if (i == current_entry)
         {
             stdout->SetAttribute(stdout, EFI_WHITE | EFI_BACKGROUND_BLUE);
-            printf("-> %s\r\n", entries[i].title);
+            printf("-> %s\n", entries[i].title);
         }
         else
         {
             stdout->SetAttribute(stdout, EFI_LIGHTGRAY | EFI_BACKGROUND_BLACK);
-            printf("   %s\r\n", entries[i].title);
+            printf("   %s\n", entries[i].title);
         }
     }
 }

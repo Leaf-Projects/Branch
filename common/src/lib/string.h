@@ -22,5 +22,8 @@ char *strchr(const char *str, int c);
 int strcmp(const char *str1, const char *str2);
 char *strstr(const char *haystack, const char *needle);
 int strncmp(const char *str1, const char *str2, size_t n);
+size_t strspn(const char *str, const char *accept);
+size_t strcspn(const char *str, const char *delim);
+char *strtok(char *str, const char *delim);
 
 #endif // STRING_H

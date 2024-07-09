@@ -149,6 +149,31 @@ char *strstr(const char *haystack, const char *needle)
     return NULL;
 }
 
+size_t strspn(const char *str, const char *accept)
+{
+    const char *p;
+    size_t count = 0;
+
+    while (*str != '\0')
+    {
+        for (p = accept; *p != '\0'; p++)
+        {
+            if (*str == *p)
+            {
+                count++;
+                break;
+            }
+        }
+        if (*p == '\0')
+        {
+            break;
+        }
+        str++;
+    }
+
+    return count;
+}
+
 int strncmp(const char *str1, const char *str2, size_t n)
 {
     for (size_t i = 0; i < n; i++)
@@ -164,4 +189,62 @@ int strncmp(const char *str1, const char *str2, size_t n)
         }
     }
     return 0;
+}
+
+char *strtok(char *str, const char *delim)
+{
+    static char *next_token = NULL;
+
+    if (str != NULL)
+    {
+        next_token = str;
+    }
+    else if (next_token == NULL)
+    {
+        return NULL;
+    }
+
+    next_token += strspn(next_token, delim);
+
+    if (*next_token == '\0')
+    {
+        next_token = NULL;
+        return NULL;
+    }
+
+    char *token_start = next_token;
+
+    next_token += strcspn(next_token, delim);
+
+    if (*next_token != '\0')
+    {
+        *next_token = '\0';
+        next_token++;
+    }
+    else
+    {
+        next_token = NULL;
+    }
+
+    return token_start;
+}
+
+size_t strcspn(const char *str, const char *delim)
+{
+    const char *s;
+    size_t count = 0;
+
+    for (; *str != '\0'; str++)
+    {
+        for (s = delim; *s != '\0'; s++)
+        {
+            if (*str == *s)
+            {
+                return count;
+            }
+        }
+        count++;
+    }
+
+    return count;
 }

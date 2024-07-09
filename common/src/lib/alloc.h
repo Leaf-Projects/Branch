@@ -5,9 +5,13 @@ Written in 2024 by Kevin Alavik <kevin@alavik.se>
 To the extent possible under law, the author(s) have dedicated all copyright and related and neighboring rights to this software to the public domain worldwide. This software is distributed without any warranty.
 */
 
-#ifndef CFG_H
-#define CFG_H
+#ifndef ALLOC_H
+#define ALLOC_H
 
-void parse_config(const char *raw);
+#include <pub.h>
+#include <stddef.h>
 
-#endif // CFG_H
+void *malloc(size_t size);
+void free(void *ptr);
+
+#endif // ALLOC_H

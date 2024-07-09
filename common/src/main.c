@@ -8,7 +8,9 @@ To the extent possible under law, the author(s) have dedicated all copyright and
 #include <pub.h>
 #include <ui/menu.h>
 #include <fs/sfs.h>
+#include <boot/cfg.h>
 #include <lib/print.h>
+#include <lib/alloc.h>
 
 EFI_HANDLE *imageHandle;
 EFI_SYSTEM_TABLE *systemTable;
@@ -29,17 +31,37 @@ EFI_STATUS branch_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable)
     stdout->SetCursorPosition(stdout, 0, 0);
     stdout->ClearScreen(stdout);
 
-    // Add some test entries
-    add_menu_entry("Test Entry 1", NULL, NULL);
-    add_menu_entry("Test Entry 2", NULL, NULL);
-    add_menu_entry("Test Entry 3", NULL, NULL);
+    SimpleFile cfg = sfs_open(u"boot.cfg");
+    if (EFI_ERROR(cfg.status))
+    {
+        printf("ERROR: Failed to open boot.cfg\n");
+        return cfg.status;
+    }
+
+    char *buffer = malloc(cfg.info.physicalSize);
+    if (buffer == NULL)
+    {
+        printf("ERROR: Failed to allocate memory for boot.cfg buffer\n");
+        return cfg.status;
+    }
+
+    sfs_read(&cfg, &*buffer);
+    if (EFI_ERROR(cfg.status))
+    {
+        printf("ERROR: Failed to read boot.cfg\n");
+        return cfg.status;
+    }
+    buffer[cfg.info.physicalSize] = '\0';
+
+    parse_config(buffer);
+    sfs_close(&cfg);
+    free(buffer);
 
     EFI_INPUT_KEY key;
     EFI_UINTN key_event = 0;
 
     for (;;)
     {
-        draw_menu();
 
         SystemTable->BootServices->WaitForEvent(1, &(SystemTable->ConIn->WaitForKey), &key_event);
         stdin->ReadKeyStroke(stdin, &key);
