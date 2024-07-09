@@ -12,6 +12,7 @@ char *_banner[] = {
 
 int num_entries = 0;
 int current_entry = 0;
+menu_entry entries[MAX_ENTRIES];
 
 void _putc(char c)
 {
@@ -37,6 +38,19 @@ void _println(char *str)
     _putc('\n');
 }
 
+void _print(char *str)
+{
+    while (*str != '\0')
+    {
+        _putc(*str);
+        if (*str == '\n' && ++*str != '\r')
+        {
+            _putc('\r');
+        }
+        str++;
+    }
+}
+
 void _display_banner()
 {
     stdout->SetAttribute(stdout, EFI_MAGENTA | EFI_BACKGROUND_BLACK);
@@ -51,19 +65,50 @@ void draw_menu()
 {
     if (_draw_banner)
     {
+        stdout->SetAttribute(stdout, EFI_LIGHTGRAY | EFI_BACKGROUND_BLACK);
+        stdout->SetCursorPosition(stdout, 0, 0);
+        stdout->ClearScreen(stdout);
+
+        stdout->SetCursorPosition(stdout, 0, 0);
+
         _display_banner();
         _draw_banner = false;
+        _println("");
+        _println("Entries:");
     }
 
     stdout->SetAttribute(stdout, EFI_LIGHTGRAY | EFI_BACKGROUND_BLACK);
-    stdout->SetCursorPosition(stdout, 0, 5);
+    stdout->SetCursorPosition(stdout, 0, 6);
     for (int i = 0; i < num_entries; i++)
     {
         if (i == current_entry)
+        {
             stdout->SetAttribute(stdout, EFI_WHITE | EFI_BACKGROUND_BLUE);
+            _print("-> ");
+            _println(entries[i].title);
+        }
         else
+        {
             stdout->SetAttribute(stdout, EFI_LIGHTGRAY | EFI_BACKGROUND_BLACK);
+            _print("   ");
+            _println(entries[i].title);
+        }
+    }
+}
 
-        _println("test");
+void add_menu_entry(const char *title, void (*action)(), void *data)
+{
+    if (num_entries < MAX_ENTRIES)
+    {
+        int i = 0;
+        while (title[i] != '\0' && i < 256)
+        {
+            entries[num_entries].title[i] = title[i];
+            i++;
+        }
+
+        entries[num_entries].action = action;
+        entries[num_entries].data = data;
+        num_entries++;
     }
 }

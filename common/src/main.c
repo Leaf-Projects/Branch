@@ -20,7 +20,11 @@ EFI_STATUS branch_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable)
     stdout->SetCursorPosition(stdout, 0, 0);
     stdout->ClearScreen(stdout);
 
-    num_entries = 5;
+    add_menu_entry("Test Entry", NULL, NULL);
+    add_menu_entry("Test Entry", NULL, NULL);
+    add_menu_entry("Test Entry", NULL, NULL);
+    add_menu_entry("Test Entry", NULL, NULL);
+    add_menu_entry("Test Entry", NULL, NULL);
 
     EFI_INPUT_KEY key;
     uint64_t key_event = 0;
@@ -36,10 +40,19 @@ EFI_STATUS branch_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable)
         {
         case EFI_SCANCODE_ARROW_DOWN:
             current_entry = (current_entry + 1) % num_entries;
-            break;
+            continue;
         case EFI_SCANCODE_ARROW_UP:
             current_entry = (current_entry + num_entries - 1) % num_entries;
-            break;
+            continue;
+        default:
+            switch (key.UnicodeChar)
+            {
+            case '\r':
+                if (entries[current_entry].action != NULL)
+                    entries[current_entry].action();
+
+                break;
+            }
         }
     }
 
