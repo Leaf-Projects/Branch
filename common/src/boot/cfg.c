@@ -6,6 +6,7 @@ To the extent possible under law, the author(s) have dedicated all copyright and
 */
 
 #include <boot/cfg.h>
+#include <boot/kernel.h>
 #include <pub.h>
 
 #include <stdint.h>
@@ -14,99 +15,126 @@ To the extent possible under law, the author(s) have dedicated all copyright and
 #include <lib/ctype.h>
 #include <lib/print.h>
 #include <lib/alloc.h>
+#include <ui/menu.h>
 
-#define MAX_ENTRIES 10
-
-typedef struct
+void _parse_entry(char *line, char **name, char **path, char **protocol)
 {
-    char name[50];
-    char kernel[50];
-    char protocol[20];
-} BootEntry;
+    char *startQuote = strchr(line, '"');
+    if (startQuote == NULL)
+        return;
 
-BootEntry boot_entries[MAX_ENTRIES];
-int timeout = -1;
+    char *endQuote = strchr(startQuote + 1, '"');
+    if (endQuote == NULL)
+        return;
+
+    size_t nameLength = endQuote - startQuote - 1;
+
+    *name = malloc(nameLength + 1);
+    if (*name == NULL)
+        return;
+
+    strncpy(*name, startQuote + 1, nameLength);
+    (*name)[nameLength] = '\0';
+
+    char *kernelKeyword = strstr(line, "kernel");
+    if (kernelKeyword == NULL)
+    {
+        free(*name);
+        *name = NULL;
+        return;
+    }
+
+    startQuote = strchr(kernelKeyword, '"');
+    if (startQuote == NULL)
+    {
+        free(*name);
+        *name = NULL;
+        return;
+    }
+
+    endQuote = strchr(startQuote + 1, '"');
+    if (endQuote == NULL)
+    {
+        free(*name);
+        *name = NULL;
+        return;
+    }
+
+    size_t pathLength = endQuote - startQuote - 1;
+
+    *path = malloc(pathLength + 1);
+    if (*path == NULL)
+    {
+        free(*name);
+        *name = NULL;
+        return;
+    }
+
+    strncpy(*path, startQuote + 1, pathLength);
+    (*path)[pathLength] = '\0';
+
+    char *protocolKeyword = strstr(line, "protocol");
+    if (protocolKeyword == NULL)
+    {
+        *protocol = NULL;
+        return;
+    }
+
+    startQuote = strchr(protocolKeyword, '"');
+    if (startQuote == NULL)
+    {
+        *protocol = NULL;
+        return;
+    }
+
+    endQuote = strchr(startQuote + 1, '"');
+    if (endQuote == NULL)
+    {
+        *protocol = NULL;
+        return;
+    }
+
+    size_t protocolLength = endQuote - startQuote - 1;
+
+    *protocol = malloc(protocolLength + 1);
+    if (*protocol == NULL)
+    {
+        free(*name);
+        *name = NULL;
+        free(*path);
+        *path = NULL;
+        return;
+    }
+
+    strncpy(*protocol, startQuote + 1, protocolLength);
+    (*protocol)[protocolLength] = '\0';
+}
 
 void parse_config(const char *raw)
 {
-    const char *delim = "{}\n,;\" \t\r";
-    char *token;
-    int entry_count = 0;
-    int in_entry = 0;
-
-    token = strtok((char *)raw, delim);
-
-    while (token != NULL)
+    char *line = (char *)raw;
+    while (*line != '\0')
     {
-        if (strcmp(token, "timeout:") == 0)
+        if (strncmp(line, "entry", 5) == 0)
         {
-            token = strtok(NULL, delim);
-            if (token != NULL)
-            {
-                timeout = atoi(token);
-            }
-        }
-        else if (strcmp(token, "\"") == 0)
-        {
-            token = strtok(NULL, "\"");
-            if (token != NULL && entry_count < MAX_ENTRIES)
-            {
-                strcpy(boot_entries[entry_count].name, token);
+            char *name = NULL;
+            char *path = NULL;
+            char *protocol = NULL;
+            _parse_entry(line, &name, &path, &protocol);
 
-                token = strtok(NULL, delim);
-                if (token != NULL && strcmp(token, "{") == 0)
-                {
-                    in_entry = 1;
-                }
-                else
-                {
-                    printf("Error parsing entry %d\n", entry_count + 1);
-                    break;
-                }
-            }
-        }
-        else if (in_entry)
-        {
-            if (strcmp(token, "kernel:") == 0)
+            if (name != NULL && path != NULL && protocol != NULL)
             {
-                token = strtok(NULL, "\"");
-                if (token != NULL)
-                {
-                    strcpy(boot_entries[entry_count].kernel, token);
-                }
+                add_menu_entry(name, path, protocol, &load_kernel_callback);
             }
-            else if (strcmp(token, "protocol:") == 0)
-            {
-                token = strtok(NULL, "\"");
-                if (token != NULL)
-                {
-                    strcpy(boot_entries[entry_count].protocol, token);
-                    entry_count++;
-                    in_entry = 0;
-                }
-            }
-            else if (strcmp(token, "}") == 0)
-            {
-                in_entry = 0;
-            }
+
+            free(name);
+            free(path);
+            free(protocol);
         }
 
-        token = strtok(NULL, delim);
-    }
-
-    if (timeout != -1)
-    {
-        printf("Timeout: %d\n", timeout);
-    }
-    else
-    {
-        printf("Timeout not specified in config.\n");
-    }
-
-    printf("Boot Entries:\n");
-    for (int i = 0; i < entry_count; ++i)
-    {
-        printf("Name: %s, Kernel: %s, Protocol: %s\n",
-               boot_entries[i].name, boot_entries[i].kernel, boot_entries[i].protocol);
+        while (*line != '\n' && *line != '\0')
+            line++;
+        if (*line == '\n')
+            line++;
     }
 }

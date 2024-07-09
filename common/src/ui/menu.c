@@ -8,6 +8,8 @@ To the extent possible under law, the author(s) have dedicated all copyright and
 #include <ui/menu.h>
 #include <pub.h>
 #include <lib/print.h>
+#include <lib/string.h>
+#include <lib/alloc.h>
 
 bool _draw_banner = true;
 
@@ -60,10 +62,12 @@ void draw_menu()
             stdout->SetAttribute(stdout, EFI_LIGHTGRAY | EFI_BACKGROUND_BLACK);
             printf("   %s\n", entries[i].title);
         }
+
+        stdout->SetAttribute(stdout, EFI_LIGHTGRAY | EFI_BACKGROUND_BLACK);
     }
 }
 
-void add_menu_entry(const char *title, void (*action)(), void *data)
+void add_menu_entry(const char *title, const char *path, const char *protocol, void (*action)())
 {
     if (num_entries < MAX_ENTRIES)
     {
@@ -73,9 +77,26 @@ void add_menu_entry(const char *title, void (*action)(), void *data)
             entries[num_entries].title[i] = title[i];
             i++;
         }
+        entries[num_entries].title[i] = '\0';
 
-        entries[num_entries].action = action;
-        entries[num_entries].data = data;
+        i = 0;
+        while (path[i] != '\0' && i < 256)
+        {
+            entries[current_entry].path[i] = path[i];
+            i++;
+        }
+        entries[current_entry].path[i] = '\0';
+
+        i = 0;
+        while (protocol[i] != '\0' && i < 256)
+        {
+            entries[current_entry].protocol[i] = protocol[i];
+            i++;
+        }
+        entries[current_entry].protocol[i] = '\0';
+
+        if (action != NULL)
+            entries[num_entries].action = action;
         num_entries++;
     }
 }

@@ -62,6 +62,7 @@ EFI_STATUS branch_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable)
 
     for (;;)
     {
+        draw_menu();
 
         SystemTable->BootServices->WaitForEvent(1, &(SystemTable->ConIn->WaitForKey), &key_event);
         stdin->ReadKeyStroke(stdin, &key);
@@ -79,7 +80,25 @@ EFI_STATUS branch_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable)
             {
             case '\r':
                 if (entries[current_entry].action != NULL)
+                {
+                    stdout->SetAttribute(stdout, EFI_LIGHTGRAY | EFI_BACKGROUND_BLACK);
+                    stdout->SetCursorPosition(stdout, 0, 0);
+                    stdout->ClearScreen(stdout);
+
                     entries[current_entry].action();
+
+                    printf("INFO: Press Enter to continue...\n");
+
+                    do
+                    {
+                        SystemTable->ConIn->ReadKeyStroke(SystemTable->ConIn, &key);
+                    } while (key.UnicodeChar != L'\r');
+
+                    stdout->ClearScreen(stdout);
+                    _draw_banner = true;
+                    draw_menu();
+                    continue;
+                }
 
                 break;
             }
