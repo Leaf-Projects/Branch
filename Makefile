@@ -30,6 +30,7 @@ test: | $(TARGET_COMMON)
 	    mkfs.fat -F 32 -n EFI_SYSTEM boot.img; \
 	    mmd -i boot.img ::/EFI ::/EFI/BOOT; \
 	    mcopy -i boot.img $(TARGET_COMMON) ::/EFI/BOOT/BOOTX64.efi; \
+		mcopy -i test.txt ::test.txt; \
 	else \
 	    dd if=/dev/zero of=boot.img bs=1M count=64; \
 	    mkfs.fat -F 32 -n EFI_SYSTEM boot.img; \
@@ -37,6 +38,7 @@ test: | $(TARGET_COMMON)
 	    sudo mount -o loop boot.img mnt; \
 	    sudo mkdir -p mnt/EFI/BOOT; \
 	    sudo cp $(TARGET_COMMON) mnt/EFI/BOOT/BOOTX64.efi; \
+		sudo cp test.txt mnt/test.txt; \
 	    sudo umount mnt; \
 	    rm -rf mnt; \
 	fi

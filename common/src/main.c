@@ -7,6 +7,8 @@ To the extent possible under law, the author(s) have dedicated all copyright and
 
 #include <pub.h>
 #include <ui/menu.h>
+#include <fs/sfs.h>
+#include <lib/print.h>
 
 EFI_HANDLE *imageHandle;
 EFI_SYSTEM_TABLE *systemTable;
@@ -27,14 +29,13 @@ EFI_STATUS branch_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable)
     stdout->SetCursorPosition(stdout, 0, 0);
     stdout->ClearScreen(stdout);
 
-    add_menu_entry("Test Entry", NULL, NULL);
-    add_menu_entry("Test Entry", NULL, NULL);
-    add_menu_entry("Test Entry", NULL, NULL);
-    add_menu_entry("Test Entry", NULL, NULL);
-    add_menu_entry("Test Entry", NULL, NULL);
+    // Add some test entries
+    add_menu_entry("Test Entry 1", NULL, NULL);
+    add_menu_entry("Test Entry 2", NULL, NULL);
+    add_menu_entry("Test Entry 3", NULL, NULL);
 
     EFI_INPUT_KEY key;
-    uint64_t key_event = 0;
+    EFI_UINTN key_event = 0;
 
     for (;;)
     {

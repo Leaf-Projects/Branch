@@ -11,6 +11,10 @@ To the extent possible under law, the author(s) have dedicated all copyright and
 #define _X64
 #include <efi.h>
 
+// Temporary fix.
+typedef EFI_INTN INTN;
+#include <efilib.h>
+
 extern EFI_HANDLE *imageHandle;
 extern EFI_SYSTEM_TABLE *systemTable;
 

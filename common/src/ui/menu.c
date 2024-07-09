@@ -7,6 +7,7 @@ To the extent possible under law, the author(s) have dedicated all copyright and
 
 #include <ui/menu.h>
 #include <pub.h>
+#include <lib/print.h>
 
 bool _draw_banner = true;
 
@@ -21,49 +22,12 @@ int num_entries = 0;
 int current_entry = 0;
 menu_entry entries[MAX_ENTRIES];
 
-void _putc(char c)
-{
-    CHAR16 str[2];
-    str[0] = (CHAR16)c;
-    str[1] = '\0';
-
-    stdout->OutputString(stdout, str);
-}
-
-void _println(char *str)
-{
-    while (*str != '\0')
-    {
-        _putc(*str);
-        if (*str == '\n' && ++*str != '\r')
-        {
-            _putc('\r');
-        }
-        str++;
-    }
-    _putc('\r');
-    _putc('\n');
-}
-
-void _print(char *str)
-{
-    while (*str != '\0')
-    {
-        _putc(*str);
-        if (*str == '\n' && ++*str != '\r')
-        {
-            _putc('\r');
-        }
-        str++;
-    }
-}
-
 void _display_banner()
 {
     stdout->SetAttribute(stdout, EFI_MAGENTA | EFI_BACKGROUND_BLACK);
     for (size_t i = 0; i < sizeof(_banner) / sizeof(*_banner); i++)
     {
-        _println(_banner[i]);
+        printf("%s\r\n", _banner[i]);
     }
     stdout->SetAttribute(stdout, EFI_LIGHTGRAY | EFI_BACKGROUND_BLACK);
 }
@@ -80,25 +44,21 @@ void draw_menu()
 
         _display_banner();
         _draw_banner = false;
-        _println("");
-        _println("Entries:");
     }
 
     stdout->SetAttribute(stdout, EFI_LIGHTGRAY | EFI_BACKGROUND_BLACK);
-    stdout->SetCursorPosition(stdout, 0, 6);
+    stdout->SetCursorPosition(stdout, 0, 5);
     for (int i = 0; i < num_entries; i++)
     {
         if (i == current_entry)
         {
             stdout->SetAttribute(stdout, EFI_WHITE | EFI_BACKGROUND_BLUE);
-            _print("-> ");
-            _println(entries[i].title);
+            printf("-> %s\r\n", entries[i].title);
         }
         else
         {
             stdout->SetAttribute(stdout, EFI_LIGHTGRAY | EFI_BACKGROUND_BLACK);
-            _print("   ");
-            _println(entries[i].title);
+            printf("   %s\r\n", entries[i].title);
         }
     }
 }
