@@ -1,6 +1,6 @@
 # Branch
 
-Branch is a bootloader for modern systems. 
+Branch is a bootloader for modern systems. It aims to be as light as possible but still powerful.
 
 ## Info
 
