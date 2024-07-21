@@ -18,5 +18,5 @@ void load_kernel_callback()
         printf("ERROR: Unsupported protocol: %s\n", entries[current_entry].protocol);
         return;
     }
-    printf(">>> %s <<<\n", entries[current_entry].title);
+    printf(">>> %s (%s) <<<\n", entries[current_entry].title, entries[current_entry].path);
 }
