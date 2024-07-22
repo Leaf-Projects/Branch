@@ -19,7 +19,13 @@ EFI_SIMPLE_TEXT_OUTPUT_PROTOCOL *stdout;
 EFI_SIMPLE_TEXT_INPUT_PROTOCOL *stdin;
 EFI_SIMPLE_TEXT_OUTPUT_PROTOCOL *stderr;
 
-EFI_STATUS branch_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable)
+void enter_firmware_settings()
+{
+    systemTable->BootServices->Exit(imageHandle, 0, 0, NULL);
+}
+
+EFI_STATUS
+branch_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable)
 {
     imageHandle = &ImageHandle;
     systemTable = &*SystemTable;
@@ -57,6 +63,8 @@ EFI_STATUS branch_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable)
     sfs_close(&cfg);
     free(buffer);
 
+    add_menu_entry("Enter UEFI Firmware Settings", "", "", enter_firmware_settings);
+
     EFI_INPUT_KEY key;
     EFI_UINTN key_event = 0;
 
@@ -79,31 +87,24 @@ EFI_STATUS branch_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable)
             switch (key.UnicodeChar)
             {
             case '\r':
-                if (entries[current_entry].action != NULL)
+                if (entries[current_entry]->action != NULL)
                 {
                     stdout->SetAttribute(stdout, EFI_LIGHTGRAY | EFI_BACKGROUND_BLACK);
                     stdout->SetCursorPosition(stdout, 0, 0);
                     stdout->ClearScreen(stdout);
 
-                    entries[current_entry].action();
+                    entries[current_entry]->action();
 
-                    printf("INFO: Press Enter to continue...\n");
-
-                    do
-                    {
-                        SystemTable->ConIn->ReadKeyStroke(SystemTable->ConIn, &key);
-                    } while (key.UnicodeChar != L'\r');
-
-                    stdout->ClearScreen(stdout);
-                    _draw_banner = true;
-                    draw_menu();
-                    continue;
+                    // kernel quit, bye bye
+                    SystemTable->BootServices->Exit(ImageHandle, 0, 0, NULL);
                 }
 
                 break;
             }
         }
     }
+
+    free_menu();
 
     for (;;)
         ;

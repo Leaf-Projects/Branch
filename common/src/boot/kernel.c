@@ -16,13 +16,14 @@ To the extent possible under law, the author(s) have dedicated all copyright and
 
 void load_kernel_callback()
 {
-    char *kernel_path = entries[current_entry].path;
-    if (strcmp(entries[current_entry].protocol, "branch") != 0)
+    char *kernel_path = entries[current_entry]->path;
+    if (strcmp(entries[current_entry]->protocol, "branch") != 0)
     {
-        printf("ERROR: Unsupported protocol: %s (Entry: %s, Path: %s)\n", entries[current_entry].protocol, entries[current_entry].title, kernel_path);
-        return;
+        printf("ERROR: Unsupported protocol: %s (Entry: %s, Path: %s)\n", entries[current_entry]->protocol, entries[current_entry]->title, kernel_path);
+        for (;;)
+            ;
     }
-    printf(">>> %s (%s) <<<\n", entries[current_entry].title, kernel_path);
+    printf(">>> %s (%s) <<<\n", entries[current_entry]->title, kernel_path);
 
     CHAR16 *path_wide = malloc(strlen(kernel_path) * sizeof(CHAR16) + 2);
     utf8_char_to_wchar(kernel_path, path_wide);
@@ -31,21 +32,25 @@ void load_kernel_callback()
     if (EFI_ERROR(kernel.status))
     {
         printf("ERROR: Failed to open kernel path\n");
-        return;
+        for (;;)
+            ;
     }
 
     char *buffer = malloc(kernel.info.physicalSize);
     if (buffer == NULL)
     {
         printf("ERROR: Failed to allocate memory for kernel data buffer\n");
-        return;
+        for (;;)
+            ;
     }
 
     sfs_read(&kernel, &*buffer);
     if (EFI_ERROR(kernel.status))
     {
         printf("ERROR: Failed to read kernel path\n");
-        return;
+        for (;;)
+            ;
+        ;
     }
 
     elf_exec_handle *data = load_elf(buffer);
@@ -55,7 +60,8 @@ void load_kernel_callback()
         sfs_close(&kernel);
         free(buffer);
         free(path_wide);
-        return;
+        for (;;)
+            ;
     }
 
     sfs_close(&kernel);
@@ -67,5 +73,6 @@ void load_kernel_callback()
     stdout->ClearScreen(stdout);
 
     // TODO: Setup the env for the kernel and pass shit based on protocol
+    systemTable->BootServices->ExitBootServices(imageHandle, 0);
     entry();
 }

@@ -12,6 +12,9 @@ To the extent possible under law, the author(s) have dedicated all copyright and
 #include <lib/alloc.h>
 
 bool _draw_banner = true;
+int num_entries = 0;
+int current_entry = 0;
+menu_entry **entries = NULL;
 
 char *_banner[] = {
     " _____                 _      _____         _   _           _         ",
@@ -19,10 +22,6 @@ char *_banner[] = {
     "| __ -|  _| .'|   |  _|   |  | __ -| . | . |  _| | . | .'| . | -_|  _|",
     "|_____|_| |__,|_|_|___|_|_|  |_____|___|___|_| |_|___|__,|___|___|_|  ",
 };
-
-int num_entries = 0;
-int current_entry = 0;
-menu_entry entries[MAX_ENTRIES];
 
 void _display_banner()
 {
@@ -55,12 +54,12 @@ void draw_menu()
         if (i == current_entry)
         {
             stdout->SetAttribute(stdout, EFI_WHITE | EFI_BACKGROUND_BLUE);
-            printf("-> %s\n", entries[i].title);
+            printf("-> %s\n", entries[i]->title);
         }
         else
         {
             stdout->SetAttribute(stdout, EFI_LIGHTGRAY | EFI_BACKGROUND_BLACK);
-            printf("   %s\n", entries[i].title);
+            printf("   %s\n", entries[i]->title);
         }
 
         stdout->SetAttribute(stdout, EFI_LIGHTGRAY | EFI_BACKGROUND_BLACK);
@@ -69,34 +68,69 @@ void draw_menu()
 
 void add_menu_entry(const char *title, const char *path, const char *protocol, void (*action)())
 {
-    if (num_entries < MAX_ENTRIES)
+    menu_entry *entry = malloc(sizeof(menu_entry));
+    if (!entry)
     {
-        int i = 0;
-        while (title[i] != '\0' && i < 256)
-        {
-            entries[num_entries].title[i] = title[i];
-            i++;
-        }
-        entries[num_entries].title[i] = '\0';
-
-        i = 0;
-        while (path[i] != '\0' && i < 256)
-        {
-            entries[current_entry].path[i] = path[i];
-            i++;
-        }
-        entries[current_entry].path[i] = '\0';
-
-        i = 0;
-        while (protocol[i] != '\0' && i < 256)
-        {
-            entries[current_entry].protocol[i] = protocol[i];
-            i++;
-        }
-        entries[current_entry].protocol[i] = '\0';
-
-        if (action != NULL)
-            entries[num_entries].action = action;
-        num_entries++;
+        printf("ERROR: Failed to allocate memory for menu entry\n");
+        return;
     }
+
+    entry->title = malloc(strlen(title) + 1);
+    if (!entry->title)
+    {
+        free(entry);
+        printf("ERROR: Failed to allocate memory for menu entry title\n");
+        return;
+    }
+    strcpy(entry->title, title);
+
+    entry->path = malloc(strlen(path) + 1);
+    if (!entry->path)
+    {
+        free(entry->title);
+        free(entry);
+        printf("ERROR: Failed to allocate memory for menu entry path\n");
+        return;
+    }
+    strcpy(entry->path, path);
+
+    entry->protocol = malloc(strlen(protocol) + 1);
+    if (!entry->protocol)
+    {
+        free(entry->path);
+        free(entry->title);
+        free(entry);
+        printf("ERROR: Failed to allocate memory for menu entry protocol\n");
+        return;
+    }
+    strcpy(entry->protocol, protocol);
+
+    entry->action = action;
+
+    menu_entry **new_entries = realloc(entries, sizeof(menu_entry *) * (num_entries + 1));
+    if (!new_entries)
+    {
+        free(entry->protocol);
+        free(entry->path);
+        free(entry->title);
+        free(entry);
+        printf("ERROR: Failed to reallocate memory for menu entries array\n");
+        return;
+    }
+
+    entries = new_entries;
+    entries[num_entries] = entry;
+    num_entries++;
+}
+
+void free_menu()
+{
+    for (int i = 0; i < num_entries; i++)
+    {
+        free(entries[i]->title);
+        free(entries[i]->path);
+        free(entries[i]->protocol);
+        free(entries[i]);
+    }
+    free(entries);
 }

@@ -13,5 +13,6 @@ To the extent possible under law, the author(s) have dedicated all copyright and
 
 void *malloc(size_t size);
 void free(void *ptr);
+void *realloc(void *ptr, size_t new_size);
 
 #endif // ALLOC_H
