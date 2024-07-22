@@ -165,5 +165,5 @@ void load_kernel_callback()
     // TODO: Setup the env for the kernel and pass shit based on protocol
     systemTable->BootServices->ExitBootServices(imageHandle, 0);
     void (*entry)(framebuffer_t *) = (void (*)(framebuffer_t *))(uintptr_t)data->entry_point;
-    entry(&framebuffer);
+    entry(framebuffer);
 }
