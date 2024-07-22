@@ -124,35 +124,43 @@ void load_kernel_callback()
             ;
     }
 
-    framebuffer_t framebuffer = (framebuffer_t){0};
+    const size_t framebufferSize = sizeof(framebuffer_t);
+    framebuffer_t *framebuffer = malloc(framebufferSize);
+    if (framebuffer == NULL)
+    {
+        printf("ERROR: Failed to allocate memory for framebuffer\n");
+        for (;;)
+            ;
+    }
+
     switch (gop->Mode->Info->PixelFormat)
     {
     case PixelBlueGreenRedReserved8BitPerColor:
-        framebuffer.bpp = 32;
-        framebuffer.red_mask_size = 8;
-        framebuffer.red_mask_shift = 16;
-        framebuffer.green_mask_size = 8;
-        framebuffer.green_mask_shift = 8;
-        framebuffer.blue_mask_size = 8;
-        framebuffer.blue_mask_shift = 0;
+        framebuffer->bpp = 32;
+        framebuffer->red_mask_size = 8;
+        framebuffer->red_mask_shift = 16;
+        framebuffer->green_mask_size = 8;
+        framebuffer->green_mask_shift = 8;
+        framebuffer->blue_mask_size = 8;
+        framebuffer->blue_mask_shift = 0;
         break;
     case PixelRedGreenBlueReserved8BitPerColor:
-        framebuffer.bpp = 32;
-        framebuffer.red_mask_size = 8;
-        framebuffer.red_mask_shift = 0;
-        framebuffer.green_mask_size = 8;
-        framebuffer.green_mask_shift = 8;
-        framebuffer.blue_mask_size = 8;
-        framebuffer.blue_mask_shift = 16;
+        framebuffer->bpp = 32;
+        framebuffer->red_mask_size = 8;
+        framebuffer->red_mask_shift = 0;
+        framebuffer->green_mask_size = 8;
+        framebuffer->green_mask_shift = 8;
+        framebuffer->blue_mask_size = 8;
+        framebuffer->blue_mask_shift = 16;
         break;
     default:
         break;
     }
 
-    framebuffer.address = gop->Mode->FrameBufferBase;
-    framebuffer.width = gop->Mode->Info->HorizontalResolution;
-    framebuffer.height = gop->Mode->Info->VerticalResolution;
-    framebuffer.pitch = gop->Mode->Info->PixelsPerScanLine * (framebuffer.bpp / 8);
+    framebuffer->address = gop->Mode->FrameBufferBase;
+    framebuffer->width = gop->Mode->Info->HorizontalResolution;
+    framebuffer->height = gop->Mode->Info->VerticalResolution;
+    framebuffer->pitch = gop->Mode->Info->PixelsPerScanLine * (framebuffer->bpp / 8);
 
     stdout->ClearScreen(stdout);
 
