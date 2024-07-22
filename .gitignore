@@ -2,6 +2,7 @@
 *.efi
 *.img
 *.fd
+*.elf
 
 /bin/
 /common/efi/
