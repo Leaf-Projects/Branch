@@ -6,6 +6,7 @@ To the extent possible under law, the author(s) have dedicated all copyright and
 */
 
 #include <boot/kernel.h>
+#include <protocol/branch.h>
 #include <data/elf.h>
 #include <utils/wchar.h>
 #include <lib/print.h>
@@ -68,11 +69,95 @@ void load_kernel_callback()
     free(buffer);
     free(path_wide);
 
-    void (*entry)(void);
-    entry = (void (*)(void))data->entry_point;
+    EFI_STATUS status;
+
+    EFI_GUID gopGuid = EFI_GRAPHICS_OUTPUT_PROTOCOL_GUID;
+    EFI_GRAPHICS_OUTPUT_PROTOCOL *gop;
+
+    EFI_GRAPHICS_OUTPUT_MODE_INFORMATION *info;
+    EFI_UINTN SizeOfInfo, numModes, nativeMode;
+
+    status = systemTable->BootServices->LocateProtocol(&gopGuid, NULL, (void **)&gop);
+    if (EFI_ERROR(status))
+    {
+        printf("ERROR: Failed to locate GOP protocol\n");
+        free(data);
+        for (;;)
+            ;
+    }
+
+    status = gop->QueryMode(gop, gop->Mode == NULL ? 0 : gop->Mode->Mode, &SizeOfInfo, &info);
+    if (status == (EFI_UINTN)EFI_NOT_STARTED)
+    {
+        status = gop->SetMode(gop, 0);
+    }
+
+    if (EFI_ERROR(status))
+    {
+        printf("ERROR: Unable to get native mode\n");
+        free(data);
+        for (;;)
+            ;
+    }
+    else
+    {
+
+        nativeMode = gop->Mode->Mode;
+        numModes = gop->Mode->MaxMode;
+    }
+
+    status = gop->QueryMode(gop, nativeMode, &SizeOfInfo, &info);
+    if (EFI_ERROR(status))
+    {
+        printf("ERROR: Unable to get native mode info\n");
+        free(data);
+        for (;;)
+            ;
+    }
+
+    status = gop->SetMode(gop, nativeMode);
+    if (EFI_ERROR(status))
+    {
+        printf("ERROR: Unable to set mode\n");
+        free(data);
+        for (;;)
+            ;
+    }
+
+    framebuffer_t framebuffer = (framebuffer_t){0};
+    switch (gop->Mode->Info->PixelFormat)
+    {
+    case PixelBlueGreenRedReserved8BitPerColor:
+        framebuffer.bpp = 32;
+        framebuffer.red_mask_size = 8;
+        framebuffer.red_mask_shift = 16;
+        framebuffer.green_mask_size = 8;
+        framebuffer.green_mask_shift = 8;
+        framebuffer.blue_mask_size = 8;
+        framebuffer.blue_mask_shift = 0;
+        break;
+    case PixelRedGreenBlueReserved8BitPerColor:
+        framebuffer.bpp = 32;
+        framebuffer.red_mask_size = 8;
+        framebuffer.red_mask_shift = 0;
+        framebuffer.green_mask_size = 8;
+        framebuffer.green_mask_shift = 8;
+        framebuffer.blue_mask_size = 8;
+        framebuffer.blue_mask_shift = 16;
+        break;
+    default:
+        break;
+    }
+
+    framebuffer.address = gop->Mode->FrameBufferBase;
+    framebuffer.width = gop->Mode->Info->HorizontalResolution;
+    framebuffer.height = gop->Mode->Info->VerticalResolution;
+    framebuffer.pitch = gop->Mode->Info->PixelsPerScanLine * (framebuffer.bpp / 8);
+
     stdout->ClearScreen(stdout);
 
     // TODO: Setup the env for the kernel and pass shit based on protocol
     systemTable->BootServices->ExitBootServices(imageHandle, 0);
-    entry();
+    void (*entry)(framebuffer_t *) = (void (*)(framebuffer_t *))(uintptr_t)data->entry_point;
+    entry(&framebuffer);
 }
