@@ -8,7 +8,7 @@ To the extent possible under law, the author(s) have dedicated all copyright and
 #ifndef SFS_H
 #define SFS_H
 
-#include <pub.h>
+#include <common.h>
 #include <stddef.h>
 #include <stdint.h>
 

@@ -6,7 +6,7 @@ To the extent possible under law, the author(s) have dedicated all copyright and
 */
 
 #include <ui/menu.h>
-#include <pub.h>
+#include <common.h>
 #include <lib/print.h>
 #include <lib/string.h>
 #include <lib/alloc.h>

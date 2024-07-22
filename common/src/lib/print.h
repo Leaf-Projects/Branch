@@ -12,7 +12,7 @@ To the extent possible under law, the author(s) have dedicated all copyright and
 #include <stddef.h>
 #include <stdarg.h>
 #include <stdbool.h>
-#include <pub.h>
+#include <common.h>
 
 void printf(const char *fmt, ...);
 

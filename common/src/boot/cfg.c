@@ -7,7 +7,7 @@ To the extent possible under law, the author(s) have dedicated all copyright and
 
 #include <boot/cfg.h>
 #include <boot/kernel.h>
-#include <pub.h>
+#include <common.h>
 
 #include <stdint.h>
 #include <stddef.h>
