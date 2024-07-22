@@ -162,8 +162,6 @@ void load_kernel_callback()
     framebuffer->height = gop->Mode->Info->VerticalResolution;
     framebuffer->pitch = gop->Mode->Info->PixelsPerScanLine * (framebuffer->bpp / 8);
 
-    stdout->ClearScreen(stdout);
-
     // TODO: Setup the env for the kernel and pass shit based on protocol
     systemTable->BootServices->ExitBootServices(imageHandle, 0);
     void (*entry)(framebuffer_t *) = (void (*)(framebuffer_t *))(uintptr_t)data->entry_point;
