@@ -2,6 +2,11 @@
 
 Branch is a bootloader for modern systems. It aims to be as light as possible but still powerful.
 
+## Children
+
+Branch is the base of these bootloaders:
+- [sphynxboot](https://github.com/sphynxos/sphynxboot)
+
 ## Info
 
 Branch is made for x86_64 and UEFI. No other systems nor BIOS support will be added.
